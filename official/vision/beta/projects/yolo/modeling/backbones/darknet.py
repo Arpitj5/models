@@ -225,7 +225,7 @@ LARGECSP53 = {
             False
         ],
         [
-            'DarkRes', 'csp', 1, True, 64, None, None, None, None, 'mish', -1,
+            'DarkRes', 'csp', 1, False, 64, None, None, None, None, 'mish', -1,
             1, 1, False
         ],
         [
@@ -371,7 +371,6 @@ BACKBONES = {
 }
 
 
-@tf.keras.utils.register_keras_serializable(package='yolo')
 class Darknet(tf.keras.Model):
   """The Darknet backbone architecture."""
 
@@ -454,6 +453,9 @@ class Darknet(tf.keras.Model):
   def _build_struct(self, net, inputs):
     if self._use_reorg_input:
       inputs = nn_blocks.Reorg()(inputs)
+      net[0].filters = net[1].filters
+      net[0].output_name = net[1].output_name
+      del net[1]
 
     endpoints = collections.OrderedDict()
     stack_outputs = [inputs]

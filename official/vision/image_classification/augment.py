@@ -20,15 +20,14 @@ RandAugment Reference: https://arxiv.org/abs/1909.13719
 
 from __future__ import absolute_import
 from __future__ import division
-# from __future__ import google_type_annotations
 from __future__ import print_function
 
 import math
-
-import tensorflow as tf
 from typing import Any, Dict, List, Optional, Text, Tuple
 
-from tensorflow.python.keras.layers.preprocessing import image_preprocessing as image_ops
+from keras.layers.preprocessing import image_preprocessing as image_ops
+import tensorflow as tf
+
 
 # This signifies the max integer that the controller RNN could predict for the
 # augmentation scheme.

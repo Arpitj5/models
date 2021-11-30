@@ -133,6 +133,7 @@ class DetectionGenerator(hyperparams.Config):
   max_num_detections: int = 100
   nms_version: str = 'v2'  # `v2`, `v1`, `batched`
   use_cpu_nms: bool = False
+  soft_nms_sigma: Optional[float] = None  # Only works when nms_version='v1'.
 
 
 @dataclasses.dataclass
@@ -184,6 +185,7 @@ class MaskRCNN(hyperparams.Config):
 
 @dataclasses.dataclass
 class Losses(hyperparams.Config):
+  loss_weight: float = 1.0
   rpn_huber_loss_delta: float = 1. / 9.
   frcnn_huber_loss_delta: float = 1.
   l2_weight_decay: float = 0.0

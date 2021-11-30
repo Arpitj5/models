@@ -21,7 +21,6 @@ from official.vision.beta.projects.yolo.ops import box_ops
 from official.vision.beta.projects.yolo.ops import loss_utils
 
 
-@tf.keras.utils.register_keras_serializable(package='yolo')
 class YoloLayer(tf.keras.Model):
   """Yolo layer (detection generator)."""
 
@@ -36,7 +35,7 @@ class YoloLayer(tf.keras.Model):
                loss_type='ciou',
                iou_normalizer=1.0,
                cls_normalizer=1.0,
-               obj_normalizer=1.0,
+               object_normalizer=1.0,
                use_scaled_loss=False,
                update_on_repeat=False,
                pre_nms_points=5000,
@@ -67,7 +66,8 @@ class YoloLayer(tf.keras.Model):
       iou_normalizer: `float` for how much to scale the loss on the IOU or the
         boxes.
       cls_normalizer: `float` for how much to scale the loss on the classes.
-      obj_normalizer: `float` for how much to scale loss on the detection map.
+      object_normalizer: `float` for how much to scale loss on the detection
+        map.
       use_scaled_loss: `bool` for whether to use the scaled loss
         or the traditional loss.
       update_on_repeat: `bool` indicating how you would like to handle repeated
@@ -110,7 +110,7 @@ class YoloLayer(tf.keras.Model):
     self._truth_thresh = truth_thresh
     self._iou_normalizer = iou_normalizer
     self._cls_normalizer = cls_normalizer
-    self._obj_normalizer = obj_normalizer
+    self._object_normalizer = object_normalizer
     self._objectness_smooth = objectness_smooth
     self._nms_thresh = nms_thresh
     self._max_boxes = max_boxes
@@ -289,7 +289,7 @@ class YoloLayer(tf.keras.Model):
         loss_types=self._loss_type,
         iou_normalizers=self._iou_normalizer,
         cls_normalizers=self._cls_normalizer,
-        obj_normalizers=self._obj_normalizer,
+        object_normalizers=self._object_normalizer,
         objectness_smooths=self._objectness_smooth,
         box_types=self._box_type,
         max_deltas=self._max_delta,

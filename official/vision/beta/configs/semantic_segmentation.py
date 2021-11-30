@@ -19,11 +19,10 @@ import os
 from typing import List, Optional, Union
 
 import numpy as np
-
+from official.core import config_definitions as cfg
 from official.core import exp_factory
 from official.modeling import hyperparams
 from official.modeling import optimization
-from official.modeling.hyperparams import config_definitions as cfg
 from official.vision.beta.configs import common
 from official.vision.beta.configs import decoders
 from official.vision.beta.configs import backbones
@@ -50,6 +49,7 @@ class DataConfig(cfg.DataConfig):
   aug_scale_min: float = 1.0
   aug_scale_max: float = 1.0
   aug_rand_hflip: bool = True
+  preserve_aspect_ratio: bool = True
   aug_policy: Optional[str] = None
   drop_remainder: bool = True
   file_type: str = 'tfrecord'
@@ -65,10 +65,14 @@ class SegmentationHead(hyperparams.Config):
   use_depthwise_convolution: bool = False
   prediction_kernel_size: int = 1
   upsample_factor: int = 1
-  feature_fusion: Optional[str] = None  # None, deeplabv3plus, or pyramid_fusion
+  feature_fusion: Optional[
+      str] = None  # None, deeplabv3plus, panoptic_fpn_fusion or pyramid_fusion
   # deeplabv3plus feature fusion params
   low_level: Union[int, str] = 2
   low_level_num_filters: int = 48
+  # panoptic_fpn_fusion params
+  decoder_min_level: Optional[Union[int, str]] = None
+  decoder_max_level: Optional[Union[int, str]] = None
 
 
 @dataclasses.dataclass
@@ -87,6 +91,7 @@ class SemanticSegmentationModel(hyperparams.Config):
 
 @dataclasses.dataclass
 class Losses(hyperparams.Config):
+  loss_weight: float = 1.0
   label_smoothing: float = 0.0
   ignore_label: int = 255
   class_weights: List[float] = dataclasses.field(default_factory=list)
