@@ -18,6 +18,7 @@ import functools
 import json
 import math
 import os
+import sys
 
 # Import libraries
 from absl import app
@@ -95,7 +96,7 @@ def get_dataset_fn(input_file_pattern,
                    include_sample_weights=False,
                    num_samples=None):
   """Gets a closure to create a dataset."""
-
+  
   def _dataset_fn(ctx=None):
     """Returns tf.data.Dataset for distributed BERT pretraining."""
     batch_size = ctx.get_per_replica_batch_size(
@@ -308,9 +309,12 @@ def get_predictions_and_labels(strategy,
   def _run_evaluation(test_iterator):
     """Runs evaluation steps."""
     preds, golds = list(), list()
+    #count_loop = 0;
     try:
       with tf.experimental.async_scope():
         while True:
+          #count_loop = count_loop+1;
+          #print("cloop:",count_loop)
           probabilities, labels = test_step(test_iterator)
           for cur_probs, cur_labels in zip(probabilities, labels):
             if return_probs:
@@ -324,7 +328,7 @@ def get_predictions_and_labels(strategy,
 
   test_iter = iter(strategy.distribute_datasets_from_function(eval_input_fn))
   predictions, labels = _run_evaluation(test_iter)
-
+  
   return predictions, labels
 
 
@@ -427,7 +431,8 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
     custom_metrics: list of metrics passed to the training loop.
   """
   gin.parse_config_files_and_bindings(FLAGS.gin_file, FLAGS.gin_param)
-
+  import os
+  os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
   with tf.io.gfile.GFile(FLAGS.input_meta_data_path, 'rb') as reader:
     input_meta_data = json.loads(reader.read().decode('utf-8'))
   label_type = LABEL_TYPES_MAP[input_meta_data.get('label_type', 'int')]
@@ -456,7 +461,11 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       include_sample_weights=include_sample_weights)
 
   if FLAGS.mode == 'predict':
+    sourcefile = open('pred_logs/log_'+FLAGS.mode+'_'+sys.argv[1]+'_'+str(int(sys.argv[2])+1)+'_'+sys.argv[3],'w')
     num_labels = input_meta_data.get('num_labels', 1)
+    pred_label = list()
+    gold_label = list()
+    match = 0
     with strategy.scope():
       classifier_model = bert_models.classifier_model(
           bert_config, num_labels)[0]
@@ -467,22 +476,40 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       assert latest_checkpoint_file
       logging.info('Checkpoint file %s found and restoring from '
                    'checkpoint', latest_checkpoint_file)
+      #checkpoint.restore(
+      #    latest_checkpoint_file).assert_existing_objects_matched()
       checkpoint.restore(
-          latest_checkpoint_file).assert_existing_objects_matched()
-      preds, _ = get_predictions_and_labels(
+          latest_checkpoint_file).expect_partial()
+      import time;
+      #options = tf.profiler.experimental.ProfilerOptions( host_tracer_level=3, python_tracer_level=1, device_tracer_level=1, delay_ms=None)
+      #tf.profiler.experimental.start('/home/arpit/project/models/official/nlp/bert/profile_bert_small_dir')
+      #print("classifier"+str(classifier_model.num_attention_heads_by_layer),file=sourcefile)
+      
+      preds, gold_label = get_predictions_and_labels(
           strategy,
           classifier_model,
           eval_input_fn,
           is_regression=(num_labels == 1),
           return_probs=True)
+      #tf.profiler.experimental.stop()
+      print("golden label:"+str(gold_label),file=sourcefile)
     output_predict_file = os.path.join(FLAGS.model_dir, 'test_results.tsv')
     with tf.io.gfile.GFile(output_predict_file, 'w') as writer:
       logging.info('***** Predict results *****')
+      ind = 0
       for probabilities in preds:
         output_line = '\t'.join(
             str(class_probability)
             for class_probability in probabilities) + '\n'
+        pred_label.append(probabilities.index(max(probabilities)))
+        ind = ind +1
         writer.write(output_line)
+    print("pred label:"+str(pred_label),file=sourcefile)
+    for i in range(len(pred_label)):
+      if(pred_label[i] == gold_label[i]):
+        match = match+1
+    acc = match/len(pred_label)
+    print("accuracy:"+str(acc),file=sourcefile)
     return
 
   if FLAGS.mode != 'train_and_eval':
@@ -503,6 +530,8 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       eval_input_fn,
       custom_callbacks=custom_callbacks,
       custom_metrics=custom_metrics)
+      
+  sourcefile.close()
 
 
 def main(_):

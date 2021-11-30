@@ -1445,7 +1445,7 @@ def file_based_convert_examples_to_features(examples,
   writer = tf.io.TFRecordWriter(output_file)
 
   for ex_index, example in enumerate(examples):
-    if ex_index % 10000 == 0:
+    if ex_index % 100 == 0:
       logging.info("Writing example %d of %d", ex_index, len(examples))
 
     if featurize_fn:
@@ -1547,6 +1547,7 @@ def generate_tf_record_from_data_file(processor,
     num_training_data = len(train_input_data_examples)
 
   if eval_data_output_path:
+    print("TESTDATAHEREEEEE$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$---------$$$$$$$$$")
     eval_input_data_examples = processor.get_dev_examples(data_dir)
     file_based_convert_examples_to_features(eval_input_data_examples,
                                             label_list, max_seq_length,

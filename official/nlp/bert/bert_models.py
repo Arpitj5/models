@@ -328,6 +328,7 @@ def classifier_model(bert_config,
     Combined prediction model (words, mask, type) -> (one-hot labels)
     BERT sub-model (words, mask, type) -> (bert_outputs)
   """
+  
   if final_layer_initializer is not None:
     initializer = final_layer_initializer
   else:
