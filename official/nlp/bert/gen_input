@@ -1,0 +1,16 @@
+source /home/ylyao/mybash
+
+for i in 5 6 7 8 9
+do
+    python ../data/create_pretraining_data.py \
+    --input_file=$INPUT_DIR/text$i.txt \
+    --output_file=$PRETRAIN_INPUT_DIR/tf_len_512_$i.tfrecord \
+    --vocab_file=$BERT_DIR/vocab.txt \
+    --do_lower_case=True \
+    --do_whole_word_mask=true \
+    --max_seq_length=512 \
+    --max_predictions_per_seq=20 \
+    --masked_lm_prob=0.15 \
+    --random_seed=12345 \
+    --dupe_factor=5
+done 

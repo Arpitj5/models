@@ -1,0 +1,40 @@
+source /home/ylyao/mybash
+
+cd input_pretrain
+
+num_head=2
+num_layer=3
+
+INPUTS_S="tf_len_128_0.tfrecord tf_len_128_1.tfrecord tf_len_128_2.tfrecord tf_len_128_3.tfrecord tf_len_128_4.tfrecord tf_len_128_5.tfrecord tf_len_128_6.tfrecord tf_len_128_7.tfrecord tf_len_128_8.tfrecord tf_len_128_9.tfrecord"
+INPUTS_L=$(ls tf_len_512*)
+
+for num_head in 1 2 4
+do
+  python ../run_pretraining.py \
+    ${num_head} ${num_layer} \
+    --input_files=$INPUTS_S  \
+    --bert_config_file=$BERT_DIR/bert_config.json \
+    --max_seq_length=128 \
+    --max_predictions_per_seq=20 \
+    --num_train_epochs=20 \
+    --train_batch_size=256 \
+    --num_steps_per_epoch=4500 \
+    --warmup_steps=10000 \
+    --learning_rate=5e-5 \
+    --model_dir=layer_${num_layer}/head_${num_head}_middle
+
+
+  python ../run_pretraining.py \
+    ${num_head} ${num_layer} \
+    --input_files=$INPUTS_L  \
+    --bert_config_file=$BERT_DIR/bert_config.json \
+    --init_checkpoint=layer_${num_layer}/head_${num_head}_middle/pretrained/bert_model_step_90000.ckpt-20 \
+    --max_seq_length=512 \
+    --max_predictions_per_seq=20 \
+    --num_train_epochs=5 \
+    --train_batch_size=64 \
+    --num_steps_per_epoch=2000 \
+    --warmup_steps=10000 \
+    --learning_rate=5e-5 \
+    --model_dir=layer_${num_layer}/head_${num_head}
+done

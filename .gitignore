@@ -96,3 +96,15 @@ ENV/
 
 # For mac
 .DS_Store
+
+glue_data/
+head*
+input/
+input_pretrain/
+model_dir_temp/
+pred_logs/
+rte/
+uncased_L-4_H-512_A-8/
+uncased_L-12_H-768_A-12/
+output/
+temp_out
