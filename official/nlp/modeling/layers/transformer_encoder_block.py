@@ -16,6 +16,7 @@
 
 import tensorflow as tf
 from .multi_head_attention import MultiHeadAttention_local
+from official.nlp.modeling.layers import util
 
 @tf.keras.utils.register_keras_serializable(package="Text")
 class TransformerEncoderBlock(tf.keras.layers.Layer):
@@ -86,8 +87,9 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         kernel.
       attention_axes: axes over which the attention is applied. `None` means
         attention over all axes, but batch, heads, and features.
-      **kwargs: keyword arguments/
+      **kwargs: keyword arguments.
     """
+    util.filter_kwargs(kwargs)
     super().__init__(**kwargs)
     
     self._num_heads = num_attention_heads
