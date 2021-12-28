@@ -284,13 +284,17 @@ def get_predictions_and_labels(strategy,
     labels: List of gold labels corresponding to predictions.
   """
 
-  @tf.function
+  #@tf.function
   def test_step(iterator):
     """Computes predictions on distributed devices."""
 
     def _test_step_fn(inputs):
       """Replicated predictions."""
       inputs, labels = inputs
+      #tf.print("INPUTS:",inputs)
+      #tf.print("input_word_ids :",inputs['input_word_ids'])
+      #tf.print("input_type_ids :",inputs['input_type_ids'])
+      #tf.print("input_mask :",inputs['input_mask'])
       logits = trained_model(inputs, training=False)
       if not is_regression:
         probabilities = tf.nn.softmax(logits)
@@ -460,7 +464,7 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       include_sample_weights=include_sample_weights)
 
   if FLAGS.mode == 'predict':
-    sourcefile = open('pred_logs/log_'+FLAGS.mode+'_'+sys.argv[1]+'_'+str(int(sys.argv[2])+1)+'_'+sys.argv[3],'w')
+    #sourcefile = open('pred_logs/log_'+FLAGS.mode+'_'+sys.argv[1]+'_'+str(int(sys.argv[2])+1)+'_'+sys.argv[3],'w')
     num_labels = input_meta_data.get('num_labels', 1)
     pred_label = list()
     gold_label = list()
@@ -481,7 +485,7 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
           latest_checkpoint_file).expect_partial()
       import time;
       #options = tf.profiler.experimental.ProfilerOptions( host_tracer_level=3, python_tracer_level=1, device_tracer_level=1, delay_ms=None)
-      #tf.profiler.experimental.start('/home/arpit/project/models/official/nlp/bert/profile_bert_small_dir')
+      tf.profiler.experimental.start('/home/arpit/project/models/official/nlp/bert/profile_bert_inference')
       #print("classifier"+str(classifier_model.num_attention_heads_by_layer),file=sourcefile)
       
       preds, gold_label = get_predictions_and_labels(
@@ -490,8 +494,8 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
           eval_input_fn,
           is_regression=(num_labels == 1),
           return_probs=True)
-      #tf.profiler.experimental.stop()
-      print("golden label:"+str(gold_label),file=sourcefile)
+      tf.profiler.experimental.stop()
+      #print("golden label:"+str(gold_label),file=sourcefile)
     output_predict_file = os.path.join(FLAGS.model_dir, 'test_results.tsv')
     with tf.io.gfile.GFile(output_predict_file, 'w') as writer:
       logging.info('***** Predict results *****')
@@ -503,12 +507,13 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
         pred_label.append(probabilities.index(max(probabilities)))
         ind = ind +1
         writer.write(output_line)
-    print("pred label:"+str(pred_label),file=sourcefile)
+    #print("pred label:"+str(pred_label),file=sourcefile)
     for i in range(len(pred_label)):
       if(pred_label[i] == gold_label[i]):
         match = match+1
     acc = match/len(pred_label)
-    print("accuracy:"+str(acc),file=sourcefile)
+    #print("accuracy:"+str(acc),file=sourcefile)
+    print("accuracy:"+str(acc))
     return
 
   if FLAGS.mode != 'train_and_eval':

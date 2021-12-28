@@ -15,7 +15,7 @@
 """Keras-based TransformerEncoder block layer."""
 
 import tensorflow as tf
-
+from .multi_head_attention import MultiHeadAttention_local
 
 @tf.keras.utils.register_keras_serializable(package="Text")
 class TransformerEncoderBlock(tf.keras.layers.Layer):
@@ -89,7 +89,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
       **kwargs: keyword arguments/
     """
     super().__init__(**kwargs)
-
+    
     self._num_heads = num_attention_heads
     self._inner_dim = inner_dim
     self._inner_activation = inner_activation
@@ -141,7 +141,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
         activity_regularizer=self._activity_regularizer,
         kernel_constraint=self._kernel_constraint,
         bias_constraint=self._bias_constraint)
-    self._attention_layer = tf.keras.layers.MultiHeadAttention(
+    self._attention_layer = MultiHeadAttention_local(
         num_heads=self._num_heads,
         key_dim=self._attention_head_size,
         dropout=self._attention_dropout,
