@@ -238,7 +238,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     base_config = super(TransformerEncoderBlock, self).get_config()
     return dict(list(base_config.items()) + list(config.items()))
 
-  def call(self, inputs):
+  def call(self, inputs,head_num_list=None):
     """Transformer self-attention encoder block call.
 
     Args:
@@ -253,6 +253,8 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     Returns:
       An output tensor with the same dimensions as input/query tensor.
     """
+    print("HNL",head_num_list)
+    tf.print("HNL",head_num_list)
     if isinstance(inputs, (list, tuple)):
       if len(inputs) == 2:
         input_tensor, attention_mask = inputs
@@ -265,6 +267,9 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     else:
       input_tensor, key_value, attention_mask = (inputs, None, None)
 
+    #tf.print("output_range:",self._output_range)
+    #tf.print("key_value:",key_value)
+    #tf.print("norm_first",self._norm_first)
     if self._output_range:
       if self._norm_first:
         source_tensor = input_tensor[:, 0:self._output_range, :]
@@ -285,13 +290,17 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     if key_value is None:
       key_value = input_tensor
     attention_output = self._attention_layer(
-        query=target_tensor, value=key_value, attention_mask=attention_mask)
+        query=target_tensor, value=key_value, attention_mask=attention_mask,head_num_list=head_num_list)
     attention_output = self._attention_dropout(attention_output)
+    #tf.print("Attention output:",attention_output.get_shape()) 
     if self._norm_first:
       attention_output = source_tensor + attention_output
     else:
       attention_output = self._attention_layer_norm(target_tensor +
                                                     attention_output)
+    #tf.print("input_tensor:",input_tensor.get_shape())
+    #tf.print("Target tensor:",target_tensor.get_shape())
+    #tf.print("Attention output final:",attention_output.get_shape())                                               
     if self._norm_first:
       source_attention_output = attention_output
       attention_output = self._output_layer_norm(attention_output)

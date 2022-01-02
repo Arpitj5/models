@@ -21,7 +21,8 @@ import math
 import string
 
 import numpy as np
-from .einsum_dense_local import EinsumDense_local
+from .einsum_dense_w0 import EinsumDense_w0
+from .einsum_dense_kqv import EinsumDense_kqv
 
 from tensorflow.python.framework import tensor_shape
 from tensorflow.python.keras import constraints
@@ -334,7 +335,6 @@ class MultiHeadAttention_local(Layer):
         activity_regularizer=self._activity_regularizer,
         kernel_constraint=self._kernel_constraint,
         bias_constraint=self._bias_constraint)
-    print("kernel init:",self._kernel_initializer)
     # Any setup work performed only once should happen in an `init_scope`
     # to avoid creating symbolic Tensors that will later pollute any eager
     # operations.
@@ -342,7 +342,7 @@ class MultiHeadAttention_local(Layer):
       free_dims = self._query_shape.rank - 1
       einsum_equation, bias_axes, output_rank = _build_proj_equation(
           free_dims, bound_dims=1, output_dims=2)
-      self._query_dense = einsum_dense.EinsumDense(
+      self._query_dense = EinsumDense_kqv(
           einsum_equation,
           output_shape=_get_output_shape(output_rank - 1,
                                          [self._num_heads, self._key_dim]),
@@ -351,7 +351,7 @@ class MultiHeadAttention_local(Layer):
           **common_kwargs)
       einsum_equation, bias_axes, output_rank = _build_proj_equation(
           self._key_shape.rank - 1, bound_dims=1, output_dims=2)
-      self._key_dense = einsum_dense.EinsumDense(
+      self._key_dense = EinsumDense_kqv(
           einsum_equation,
           output_shape=_get_output_shape(output_rank - 1,
                                          [self._num_heads, self._key_dim]),
@@ -360,7 +360,7 @@ class MultiHeadAttention_local(Layer):
           **common_kwargs)
       einsum_equation, bias_axes, output_rank = _build_proj_equation(
           self._value_shape.rank - 1, bound_dims=1, output_dims=2)
-      self._value_dense = einsum_dense.EinsumDense(
+      self._value_dense = EinsumDense_kqv(
           einsum_equation,
           output_shape=_get_output_shape(output_rank - 1,
                                          [self._num_heads, self._value_dim]),
@@ -395,8 +395,8 @@ class MultiHeadAttention_local(Layer):
       output_shape = [self._query_shape[-1]]
     einsum_equation, bias_axes, output_rank = _build_proj_equation(
         free_dims, bound_dims=2, output_dims=len(output_shape))
-    tf.print("EQ:",einsum_equation)
-    return EinsumDense_local(
+    #tf.print("EQ:",einsum_equation)
+    return EinsumDense_w0(
         einsum_equation,
         output_shape=_get_output_shape(output_rank - 1, output_shape),
         bias_axes=bias_axes if self._use_bias else None,
@@ -470,7 +470,6 @@ class MultiHeadAttention_local(Layer):
     # attention scores.
     attention_scores = special_math_ops.einsum(self._dot_product_equation, key,
                                                query)
-
     attention_scores = self._masked_softmax(attention_scores, attention_mask)
 
     # This is actually dropping out entire tokens to attend to, which might
@@ -481,6 +480,11 @@ class MultiHeadAttention_local(Layer):
     # `context_layer` = [B, T, N, H]
     attention_output = special_math_ops.einsum(self._combine_equation,
                                                attention_scores_dropout, value)
+    #tf.print(self._key_dim)
+    #tf.print(key.get_shape())
+    #tf.print(query.get_shape())
+    #tf.print(self._dot_product_equation)                          
+    #tf.print(attention_scores.get_shape())
     return attention_output, attention_scores
 
   #@tf.function
@@ -490,7 +494,8 @@ class MultiHeadAttention_local(Layer):
            key=None,
            attention_mask=None,
            return_attention_scores=False,
-           training=None):
+           training=None,
+           head_num_list=None):
     if not self._built_from_signature:
       self._build_from_signature(query=query, value=value, key=key)
     if key is None:
@@ -499,18 +504,17 @@ class MultiHeadAttention_local(Layer):
     #   N = `num_attention_heads`
     #   H = `size_per_head`
     # `query` = [B, T, N ,H]
-    query = self._query_dense(query)
+    print("headnum list",head_num_list)
+    tf.print("headnum_list",head_num_list)
+    query = self._query_dense(query,head_num_list,self._num_heads)
     #tf.print(query)
     # `key` = [B, S, N, H]
-    key = self._key_dense(key)
+    key = self._key_dense(key,head_num_list,self._num_heads)
 
     # `value` = [B, S, N, H]
-    value = self._value_dense(value)
+    value = self._value_dense(value,head_num_list,self._num_heads)
     attention_output, attention_scores = self._compute_attention(
         query, key, value, attention_mask, training)
-    #import pdb;
-    #pdb.set_trace()
-    head_num_list = [0,1,6]
     #tf.print("Attention outputput size:", attention_output.get_shape())
     attention_output = self._output_dense(attention_output,head_num_list,self._num_heads)
     #attention_output = self._output_dense(attention_output)

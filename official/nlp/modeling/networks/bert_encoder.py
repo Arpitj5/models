@@ -456,7 +456,9 @@ class BertEncoder(tf.keras.Model):
           kernel_initializer=initializer,
           name='transformer/layer_%d' % i)
       transformer_layers.append(layer)
-      data = layer([data, attention_mask])
+      #Heads to be pruned
+      head_num_list = [2,3,(i%3+5)]
+      data = layer([data, attention_mask],head_num_list)
       encoder_outputs.append(data)
 
     last_encoder_output = encoder_outputs[-1]
