@@ -1,3 +1,12 @@
+# Setup for dropping heads
+1. Train BERT
+2. To disable profiling at run-time, comment out tf.profiler.experimental.start and tf.profiler.experimental.stop above and below get_predictions_and_labels() in run_classifier.py
+3. During inference, change the head_num_list in bert_encoder.py to desired, then give a run.
+4. Accuracy is printed at the end of simulation.
+5. To run tensorboard for inference: tensorboard --logdir dir_name              //current dir_name: profile_bert_inference
+
+Note: For power analysis get rid of all redundant code including prints and tf operations.
+
 # BERT (Bidirectional Encoder Representations from Transformers)
 
 **WARNING**: We are on the way to deprecate most of the code in this directory.
