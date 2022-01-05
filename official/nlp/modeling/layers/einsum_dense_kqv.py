@@ -236,6 +236,7 @@ class EinsumDense_kqv(Layer):
     #inputs = tf.slice(inputs,[0,0,0,0],[1,-1,12,64])
     #kernel_weights = tf.slice(self.kernel,[1,0,0],[10,64,768])
     #inputs = tf.slice(inputs,[0,0,1,0],[1,-1,10,64])
+    #print("Einsum_kqv:",self.equation,kernel_weights.get_shape(),inputs.get_shape())
     ret = special_math_ops.einsum(self.equation, inputs, self.kernel)
     ret2 = special_math_ops.einsum(self.equation, inputs, kernel_weights)
     #tf.print("Einsum_kqv:",kernel_weights.get_shape(),bias_weights.get_shape(),ret.get_shape())

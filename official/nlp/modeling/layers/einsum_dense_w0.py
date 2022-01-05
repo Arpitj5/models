@@ -207,7 +207,7 @@ class EinsumDense_w0(Layer):
         #self.kernel_weights[index,:,:] = tf.slice(self.kernel,,)
     #kernel_weights = self.kernel
     #12,64,768
-    tf.print("num_heads:",head_num_list)
+    #tf.print("num_heads:",head_num_list)
     start_idx = 0
     if head_num_list:
       kernel_weights =  tf.slice(self.kernel,[start_idx,0,0],[head_num_list[0],-1,-1])
@@ -232,8 +232,8 @@ class EinsumDense_w0(Layer):
     #inputs = tf.slice(inputs,[0,0,0,0],[1,-1,12,64])
     #kernel_weights = tf.slice(self.kernel,[1,0,0],[10,64,768])
     #inputs = tf.slice(inputs,[0,0,1,0],[1,-1,10,64])
+    #print("Einsum_w0:",self.equation,kernel_weights.get_shape(),inputs.get_shape())
     ret = special_math_ops.einsum(self.equation, input_weights, kernel_weights)
-    #tf.print("Einsum_w0:",kernel_weights.get_shape(),inputs.get_shape(),ret.get_shape())
     if self.bias is not None:
       ret += self.bias
     if self.activation is not None:

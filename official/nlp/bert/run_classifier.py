@@ -484,8 +484,7 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       checkpoint.restore(
           latest_checkpoint_file).expect_partial()
       import time;
-      #options = tf.profiler.experimental.ProfilerOptions( host_tracer_level=3, python_tracer_level=1, device_tracer_level=1, delay_ms=None)
-      tf.profiler.experimental.start('/home/arpit/project/models/official/nlp/bert/profile_bert_inference')
+      #tf.profiler.experimental.start('/home/arpit/project/models/official/nlp/bert/profile_bert_inference')
       #print("classifier"+str(classifier_model.num_attention_heads_by_layer),file=sourcefile)
       
       preds, gold_label = get_predictions_and_labels(
@@ -494,7 +493,7 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
           eval_input_fn,
           is_regression=(num_labels == 1),
           return_probs=True)
-      tf.profiler.experimental.stop()
+      #tf.profiler.experimental.stop()
       #print("golden label:"+str(gold_label),file=sourcefile)
     output_predict_file = os.path.join(FLAGS.model_dir, 'test_results.tsv')
     with tf.io.gfile.GFile(output_predict_file, 'w') as writer:

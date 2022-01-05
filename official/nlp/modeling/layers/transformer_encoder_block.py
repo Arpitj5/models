@@ -253,8 +253,7 @@ class TransformerEncoderBlock(tf.keras.layers.Layer):
     Returns:
       An output tensor with the same dimensions as input/query tensor.
     """
-    print("HNL",head_num_list)
-    tf.print("HNL",head_num_list)
+    #print("HNL",head_num_list)
     if isinstance(inputs, (list, tuple)):
       if len(inputs) == 2:
         input_tensor, attention_mask = inputs

@@ -202,6 +202,8 @@ class BertEncoderV2(tf.keras.layers.Layer):
 
   def call(self, inputs):
     word_embeddings = None
+    tf.print("I: hasdhjjasdjknajsfdnkjasf")
+    print("B: hasdhjjasdjknajsfdnkjasf")
     if isinstance(inputs, dict):
       word_ids = inputs.get('input_word_ids')
       mask = inputs.get('input_mask')
@@ -439,6 +441,7 @@ class BertEncoder(tf.keras.Model):
     #print("num_attention_heads"+str(num_attention_heads_by_layer))
     #print("num of run time args:"+str(len(sys.argv)-1))
     for i in range(num_layers):
+      print("Build Layer:",i)
       if i == num_layers - 1 and output_range is not None:
         transformer_output_range = output_range
       else:
@@ -457,7 +460,12 @@ class BertEncoder(tf.keras.Model):
           name='transformer/layer_%d' % i)
       transformer_layers.append(layer)
       #Heads to be pruned
-      head_num_list = [2,3,(i%3+5)]
+      if(int(sys.argv[1]) == i):
+        #head_num_list = list(range(0,int(sys.argv[2]))) #For dropping heads linearly
+        head_num_list = [int(sys.argv[2])] #For dropping a single head
+      else:
+        head_num_list = []
+      print("Head list to be dropped:",head_num_list)
       data = layer([data, attention_mask],head_num_list)
       encoder_outputs.append(data)
 

@@ -504,8 +504,8 @@ class MultiHeadAttention_local(Layer):
     #   N = `num_attention_heads`
     #   H = `size_per_head`
     # `query` = [B, T, N ,H]
-    print("headnum list",head_num_list)
-    tf.print("headnum_list",head_num_list)
+    #print("Build headnum list",head_num_list)
+    #tf.print("Inf headnum_list",head_num_list)
     query = self._query_dense(query,head_num_list,self._num_heads)
     #tf.print(query)
     # `key` = [B, S, N, H]
