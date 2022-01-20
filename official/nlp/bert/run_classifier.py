@@ -467,21 +467,33 @@ def custom_main(custom_callbacks=None, custom_metrics=None):
       logging.info('Checkpoint file %s found and restoring from '
                    'checkpoint', latest_checkpoint_file)
       checkpoint.restore(
-          latest_checkpoint_file).assert_existing_objects_matched()
-      preds, _ = get_predictions_and_labels(
+          latest_checkpoint_file).expect_partial()
+      # options = tf.profiler.experimental.ProfilerOptions(host_tracer_level=3, python_tracer_level=1, device_tracer_level=1, delay_ms=None)
+      # tf.profiler.experimental.start("/home/ylyao/models/official/nlp/bert/finetune/layer_4/rte/head_2/model_dir_0/model_dir_temp/profile")
+      preds, gold_label = get_predictions_and_labels(
           strategy,
           classifier_model,
           eval_input_fn,
           is_regression=(num_labels == 1),
           return_probs=True)
+      # tf.profiler.experimental.stop()
+      print(gold_label)
     output_predict_file = os.path.join(FLAGS.model_dir, 'test_results.tsv')
+    cnt = 0
     with tf.io.gfile.GFile(output_predict_file, 'w') as writer:
       logging.info('***** Predict results *****')
-      for probabilities in preds:
-        output_line = '\t'.join(
-            str(class_probability)
-            for class_probability in probabilities) + '\n'
+      writer.write('index\tprediction\n')
+      for i, probabilities in enumerate(preds):
+        # output_line = '\t'.join(
+        #     str(class_probability)
+        #     for class_probability in probabilities) + '\n'
+        pred_res = probabilities.index(max(probabilities))
+        if (1 - pred_res) == gold_label[i]:
+          cnt += 1
+        res = 'not_entailment' if pred_res else 'entailment'
+        output_line = '\t'.join([str(i), res]) + '\n'
         writer.write(output_line)
+      writer.write(f"{cnt}")
     return
 
   if FLAGS.mode != 'train_and_eval':

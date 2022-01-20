@@ -429,12 +429,13 @@ class BertEncoder(tf.keras.Model):
     data = embeddings
     attention_mask = layers.SelfAttentionMask()(data, mask)
     encoder_outputs = []
+    num_head, num_layer = int(sys.argv[1]), int(sys.argv[2])
     for i in range(num_layers):
       if i == num_layers - 1 and output_range is not None:
         transformer_output_range = output_range
       else:
         transformer_output_range = None
-      num_head, num_layer = int(sys.argv[1]), int(sys.argv[2])
+      # num_head, num_layer = 4, 3
       num_heads = num_head if i == num_layer else num_attention_heads
       layer = layers.TransformerEncoderBlock(
           num_attention_heads=num_heads,

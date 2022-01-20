@@ -1,0 +1,14 @@
+source ~/mybash
+
+head=2
+MODEL_D=${WORKING_DIR}/finetune/layer_4/rte/head_${head}/model_dir_0/model_dir_temp
+echo $MODEL_D
+python run_classifier.py  \
+    ${head} 4 \
+    --mode=predict \
+    --input_meta_data_path=${OUTPUT_DIR}/${TASK}_meta_data \
+    --eval_data_path=${OUTPUT_DIR}/${TASK}_test.tf_record \
+    --bert_config_file=${BERT_DIR}/bert_config.json \
+    --eval_batch_size=1 \
+    --model_dir=$MODEl_D \
+    --distribution_strategy=one_device

@@ -1,0 +1,3 @@
+default: 3.1 ms
+layer1 (head 1, 2, 4): 3.0, 3.1, 3.1
+layer4 (head 1, 2, 4): 3.1, 3.1, 3.1

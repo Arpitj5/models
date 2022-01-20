@@ -515,6 +515,7 @@ def run_customized_training_loop(
           training_status += '  %s = %f' % (metric.name, metric_value)
           tf.summary.scalar(metric.name, metric_value, step=current_step)
         summary_writer.flush()
+        print(training_status)
       logging.info(training_status)
 
       # If no need for evaluation, we only call on_batch_end with train_loss,
