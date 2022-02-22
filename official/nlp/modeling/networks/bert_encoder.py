@@ -460,12 +460,53 @@ class BertEncoder(tf.keras.Model):
           name='transformer/layer_%d' % i)
       transformer_layers.append(layer)
       #Heads to be pruned
-      if(int(sys.argv[1]) == i):
-        #head_num_list = list(range(0,int(sys.argv[2]))) #For dropping heads linearly
-        head_num_list = [int(sys.argv[2])] #For dropping a single head
-      else:
-        head_num_list = []
+
+      # comment this part in finetuning
+      mode = int(sys.argv[3])
+      if mode == 0:  # layer selective, head incremental
+        if(int(sys.argv[1]) == i):
+          head_num_list = list(range(0, int(sys.argv[2])))
+        else:
+          head_num_list = []
+      elif mode == 1:  # layer incremental, head incremental
+        if(int(sys.argv[1]) >= i):
+          head_num_list = list(range(0, int(sys.argv[2])))
+        else:
+          head_num_list = []
+      elif mode == 2:  # layer selective, head selective
+        if(int(sys.argv[1]) == i):
+          head_num_list = list(range(0, int(sys.argv[2]), 2)) # dropping head [0], [0, 2]...
+        else:
+          head_num_list = []
+      elif mode == 3:  # layer incremental, head selective
+        if(int(sys.argv[1]) >= i):
+          head_num_list = list(range(0, int(sys.argv[2]), 2))
+        else:
+          head_num_list = []
+      elif mode == 4:
+        if(int(sys.argv[1]) >= i):
+          head_num_list = [int(sys.argv[2])]
+        else:
+          head_num_list = []
+      elif mode == 5:
+        if(int(sys.argv[1]) == i):
+          head_num_list = [int(sys.argv[2])]
+        else:
+          head_num_list = []
+      elif mode == 6:
+        if(int(sys.argv[1]) >= 11 - i):
+          head_num_list = [int(sys.argv[2])]
+        else:
+          head_num_list = []
+      elif mode == 7:
+        if(int(sys.argv[1]) >= 11 - i):
+          head_num_list = list(range(0, int(sys.argv[2])))
+        else:
+          head_num_list = []
       print("Head list to be dropped:",head_num_list)
+      # comment this part in finetuning
+
+      # head_num_list = [] # uncomment this line in finetuning
       data = layer([data, attention_mask],head_num_list)
       encoder_outputs.append(data)
 

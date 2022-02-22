@@ -96,3 +96,7 @@ ENV/
 
 # For mac
 .DS_Store
+
+finefune/
+ckpt
+events.out*
